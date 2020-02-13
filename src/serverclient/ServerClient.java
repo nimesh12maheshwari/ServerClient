@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package serverclient;
 
 import java.io.*;
@@ -20,8 +16,8 @@ public class ServerClient {
     ObjectInputStream is=null;
     Socket s=null;
     Thread t1;
-    private boolean isConnected = false;
-    String sourceFilePath = "C:/Users/Nishu/Downloads/download.png";
+    private boolean isConnected = false;//for checking connection
+    String sourceFilePath ;
     private FileEvent fileEvent = null;
     private String destinationPath = "./";
     private File dstFile = null;
@@ -34,20 +30,18 @@ public class ServerClient {
         
         try {
             this.obj=obj;
-            s = new Socket(ServerClient.ip, 5056);
-            System.out.println("Client socket established");
+            s = new Socket(ServerClient.ip, 5056);//making connection with server
+          
                 // obtaining input and out streams 
             os = new ObjectOutputStream(s.getOutputStream()); 
           
-            
-           System.out.println("Oject output stream established");
            is = new ObjectInputStream(s.getInputStream());
           
-           System.out.println(" Oject input stream established ");
+           //Oject input stream established 
            
            
             
-            receive();
+            receive();//for receiving messages we have run thread in receive function
         } catch (IOException ex) {
             Logger.getLogger(ServerClient.class.getName()).log(Level.SEVERE, null, ex);
         }    
@@ -57,25 +51,25 @@ public class ServerClient {
                 public void run(){
                     while(true){
                         try {
-                            System.out.println("receive while(true)");
-                            //String received = dis.readUTF();
+                            
+                            
                             Object oob = is.readObject();
-                            System.out.println("object received");
-                            if(oob instanceof String){
-                               // Message m=(Message)oob;
-                                System.out.println("after readUTF "+(String)oob);
+                            //object received
+                            if(oob instanceof String){ 
+                              
                                 obj.showMessage((String)oob);
                             }
                             else{
-                                downloadFile(oob);
-                                System.out.println("back in receive thread after donwloadFile"+showMessage);
+                                downloadFile(oob);// for saving file received
+                          
                                 obj.showMessage(showMessage);
                             }
-                            //System.out.println("after readUTF "+received);
+                            
                             
                             
                         } catch (Exception ex) {
                             try {
+                              //closing all streams used
                                 is.close();os.close();s.close();
                                 break;
                             } catch (IOException ex1) {
@@ -89,19 +83,17 @@ public class ServerClient {
                     }
                 }
             };
-        t1.start();
+        t1.start(); // start thread for receiving messages
     }
-    
+    // for sending messages of string type
     void send(String send){
         
             try {
-                System.out.println("in send");
-                //dos.writeUTF(send);
-                //dos.flush();
-                //Message message = new Message(send);      
+                
+                    
                 os.writeObject(send);
                 os.flush();
-                System.out.println("after flush"+send);
+               
         } catch (IOException ex) {
             Logger.getLogger(ServerClient.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -111,13 +103,15 @@ public class ServerClient {
     }
     
     public void sendFile() {
-        fileEvent = new FileEvent();
-        String fileName = sourceFilePath.substring(sourceFilePath.lastIndexOf("/") + 1, sourceFilePath.length());
-        String path = sourceFilePath.substring(0, sourceFilePath.lastIndexOf("/") + 1);
+        fileEvent = new FileEvent(); // creating object of file Event to send file by storing in it 
+        String fileName = sourceFilePath.substring(sourceFilePath.lastIndexOf("/") + 1, sourceFilePath.length());// saving file name
+        String path = sourceFilePath.substring(0, sourceFilePath.lastIndexOf("/") + 1);// path 
         fileEvent.setDestinationDirectory(destinationPath);
-        fileEvent.setFilename(fileName);
+        fileEvent.setFilename(fileName);// setting file name
         fileEvent.setSourceDirectory(sourceFilePath);fileEvent.userName=ServerClient.name;
-        File file = new File(sourceFilePath);
+        File file = new File(sourceFilePath);// opening file selected for sending
+        
+        // now saving in byte array
         if (file.isFile()) {
         try {
         DataInputStream diStream = new DataInputStream(new FileInputStream(file));
@@ -130,7 +124,7 @@ public class ServerClient {
         }
         fileEvent.setFileSize(len);
         fileEvent.setFileData(fileBytes);
-        fileEvent.setStatus("Success");
+        fileEvent.setStatus("Success"); //  all contents are successfully filled
         } catch (Exception e) {
         e.printStackTrace();
         fileEvent.setStatus("Error");
@@ -143,8 +137,8 @@ public class ServerClient {
         try {
         os.writeObject(fileEvent);
         os.flush();
-        System.out.println("Done...Going to exit");
-        Thread.sleep(3000);
+       
+        Thread.sleep(3000);// waiting time for sending files
 
         } catch (IOException e) {
         e.printStackTrace();
@@ -153,11 +147,11 @@ public class ServerClient {
         }
 
     }
-    
+    // for download transfered file through object
     public void downloadFile(Object oob) {
         try {
         FileEvent fileEvent=(FileEvent)oob;    
-        System.out.println("in downloadFile");
+
         if (fileEvent.getStatus().equalsIgnoreCase("Error")) {
             System.out.println("Error occurred ..So exiting");
         
@@ -173,7 +167,7 @@ public class ServerClient {
         fileOutputStream.flush();
         System.out.println("Output file : " + outputFile + " is successfully saved ");
         Thread.sleep(3000);
-
+// downloading time
 
         } catch (IOException e) {
         e.printStackTrace();
